@@ -36,13 +36,13 @@ Output::
 [[90m12:00:17 AM[0m] Starting compilation in watch mode...
 
 a/lib/lib.d.ts
-  Default library
+  Default library for target 'es3'
 project/a.ts
-  Matched by include pattern '**/*' in 'project/tsconfig.json'
+  Matched by default include pattern '**/*'
   Imported via "C://project/a" from file 'project/b.ts'
   Imported via "c://project/a" from file 'project/b.ts'
 project/b.ts
-  Matched by include pattern '**/*' in 'project/tsconfig.json'
+  Matched by default include pattern '**/*'
 [[90m12:00:22 AM[0m] Found 0 errors. Watching for file changes.
 
 
@@ -59,6 +59,11 @@ Semantic diagnostics in builder refreshed for::
 c:/a/lib/lib.d.ts
 c:/project/a.ts
 c:/project/b.ts
+
+Shape signatures in builder refreshed for::
+c:/a/lib/lib.d.ts (used version)
+c:/project/a.ts (used version)
+c:/project/b.ts (used version)
 
 WatchedFiles::
 c:/project/tsconfig.json:
@@ -114,13 +119,13 @@ Output::
 [[90m12:00:25 AM[0m] File change detected. Starting incremental compilation...
 
 a/lib/lib.d.ts
-  Default library
+  Default library for target 'es3'
 project/a.ts
-  Matched by include pattern '**/*' in 'project/tsconfig.json'
+  Matched by default include pattern '**/*'
   Imported via "C://project/a" from file 'project/b.ts'
   Imported via "c://project/a" from file 'project/b.ts'
 project/b.ts
-  Matched by include pattern '**/*' in 'project/tsconfig.json'
+  Matched by default include pattern '**/*'
 [[90m12:00:32 AM[0m] Found 0 errors. Watching for file changes.
 
 
@@ -136,6 +141,10 @@ c:/project/b.ts
 Semantic diagnostics in builder refreshed for::
 c:/project/a.ts
 c:/project/b.ts
+
+Shape signatures in builder refreshed for::
+c:/project/a.ts (computed .d.ts)
+c:/project/b.ts (computed .d.ts)
 
 WatchedFiles::
 c:/project/tsconfig.json:

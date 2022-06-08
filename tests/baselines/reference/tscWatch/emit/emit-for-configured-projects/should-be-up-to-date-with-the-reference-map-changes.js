@@ -59,6 +59,14 @@ Semantic diagnostics in builder refreshed for::
 /a/b/globalFile3.ts
 /a/b/moduleFile2.ts
 
+Shape signatures in builder refreshed for::
+/a/lib/lib.d.ts (used version)
+/a/b/modulefile1.ts (used version)
+/a/b/file1consumer1.ts (used version)
+/a/b/file1consumer2.ts (used version)
+/a/b/globalfile3.ts (used version)
+/a/b/modulefile2.ts (used version)
+
 WatchedFiles::
 /a/b/tsconfig.json:
   {"fileName":"/a/b/tsconfig.json","pollingInterval":250}
@@ -152,6 +160,9 @@ Program files::
 Semantic diagnostics in builder refreshed for::
 /a/b/file1Consumer1.ts
 
+Shape signatures in builder refreshed for::
+/a/b/file1consumer1.ts (computed .d.ts)
+
 WatchedFiles::
 /a/b/tsconfig.json:
   {"fileName":"/a/b/tsconfig.json","pollingInterval":250}
@@ -221,6 +232,10 @@ Semantic diagnostics in builder refreshed for::
 /a/b/moduleFile1.ts
 /a/b/file1Consumer2.ts
 
+Shape signatures in builder refreshed for::
+/a/b/modulefile1.ts (computed .d.ts)
+/a/b/file1consumer2.ts (computed .d.ts)
+
 WatchedFiles::
 /a/b/tsconfig.json:
   {"fileName":"/a/b/tsconfig.json","pollingInterval":250}
@@ -287,6 +302,9 @@ Program files::
 Semantic diagnostics in builder refreshed for::
 /a/b/file1Consumer1.ts
 
+Shape signatures in builder refreshed for::
+/a/b/file1consumer1.ts (computed .d.ts)
+
 WatchedFiles::
 /a/b/tsconfig.json:
   {"fileName":"/a/b/tsconfig.json","pollingInterval":250}
@@ -330,7 +348,7 @@ export let y = Foo();
 
 Output::
 >> Screen clear
-[[90m12:01:05 AM[0m] File change detected. Starting incremental compilation...
+[[90m12:01:06 AM[0m] File change detected. Starting incremental compilation...
 
 [96ma/b/file1Consumer1.ts[0m:[93m1[0m:[93m9[0m - [91merror[0m[90m TS2305: [0mModule '"./moduleFile1"' has no exported member 'Foo'.
 
@@ -347,7 +365,7 @@ Output::
 [7m1[0m export let y = Foo();
 [7m [0m [91m               ~~~[0m
 
-[[90m12:01:15 AM[0m] Found 3 errors. Watching for file changes.
+[[90m12:01:16 AM[0m] Found 3 errors. Watching for file changes.
 
 
 
@@ -366,6 +384,11 @@ Semantic diagnostics in builder refreshed for::
 /a/b/moduleFile1.ts
 /a/b/file1Consumer1.ts
 /a/b/file1Consumer2.ts
+
+Shape signatures in builder refreshed for::
+/a/b/modulefile1.ts (computed .d.ts)
+/a/b/file1consumer2.ts (computed .d.ts)
+/a/b/file1consumer1.ts (computed .d.ts)
 
 WatchedFiles::
 /a/b/tsconfig.json:
@@ -413,9 +436,9 @@ export var T: number;export function Foo() { };
 
 Output::
 >> Screen clear
-[[90m12:01:22 AM[0m] File change detected. Starting incremental compilation...
+[[90m12:01:23 AM[0m] File change detected. Starting incremental compilation...
 
-[[90m12:01:32 AM[0m] Found 0 errors. Watching for file changes.
+[[90m12:01:33 AM[0m] Found 0 errors. Watching for file changes.
 
 
 
@@ -434,6 +457,11 @@ Semantic diagnostics in builder refreshed for::
 /a/b/moduleFile1.ts
 /a/b/file1Consumer1.ts
 /a/b/file1Consumer2.ts
+
+Shape signatures in builder refreshed for::
+/a/b/modulefile1.ts (computed .d.ts)
+/a/b/file1consumer2.ts (computed .d.ts)
+/a/b/file1consumer1.ts (computed .d.ts)
 
 WatchedFiles::
 /a/b/tsconfig.json:

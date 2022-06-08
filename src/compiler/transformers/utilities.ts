@@ -84,34 +84,34 @@ namespace ts {
                     // import x from "mod"
                     // import * as x from "mod"
                     // import { x, y } from "mod"
-                    externalImports.push(<ImportDeclaration>node);
-                    if (!hasImportStar && getImportNeedsImportStarHelper(<ImportDeclaration>node)) {
+                    externalImports.push(node as ImportDeclaration);
+                    if (!hasImportStar && getImportNeedsImportStarHelper(node as ImportDeclaration)) {
                         hasImportStar = true;
                     }
-                    if (!hasImportDefault && getImportNeedsImportDefaultHelper(<ImportDeclaration>node)) {
+                    if (!hasImportDefault && getImportNeedsImportDefaultHelper(node as ImportDeclaration)) {
                         hasImportDefault = true;
                     }
                     break;
 
                 case SyntaxKind.ImportEqualsDeclaration:
-                    if ((<ImportEqualsDeclaration>node).moduleReference.kind === SyntaxKind.ExternalModuleReference) {
+                    if ((node as ImportEqualsDeclaration).moduleReference.kind === SyntaxKind.ExternalModuleReference) {
                         // import x = require("mod")
-                        externalImports.push(<ImportEqualsDeclaration>node);
+                        externalImports.push(node as ImportEqualsDeclaration);
                     }
 
                     break;
 
                 case SyntaxKind.ExportDeclaration:
-                    if ((<ExportDeclaration>node).moduleSpecifier) {
-                        if (!(<ExportDeclaration>node).exportClause) {
+                    if ((node as ExportDeclaration).moduleSpecifier) {
+                        if (!(node as ExportDeclaration).exportClause) {
                             // export * from "mod"
-                            externalImports.push(<ExportDeclaration>node);
+                            externalImports.push(node as ExportDeclaration);
                             hasExportStarsToExportValues = true;
                         }
                         else {
                             // export * as ns from "mod"
                             // export { x, y } from "mod"
-                            externalImports.push(<ExportDeclaration>node);
+                            externalImports.push(node as ExportDeclaration);
                             if (isNamedExports((node as ExportDeclaration).exportClause!)) {
                                 addExportedNamesForExportDeclaration(node as ExportDeclaration);
                             }
@@ -134,15 +134,15 @@ namespace ts {
                     break;
 
                 case SyntaxKind.ExportAssignment:
-                    if ((<ExportAssignment>node).isExportEquals && !exportEquals) {
+                    if ((node as ExportAssignment).isExportEquals && !exportEquals) {
                         // export = x
-                        exportEquals = <ExportAssignment>node;
+                        exportEquals = node as ExportAssignment;
                     }
                     break;
 
                 case SyntaxKind.VariableStatement:
                     if (hasSyntacticModifier(node, ModifierFlags.Export)) {
-                        for (const decl of (<VariableStatement>node).declarationList.declarations) {
+                        for (const decl of (node as VariableStatement).declarationList.declarations) {
                             exportedNames = collectExportedVariableInfo(decl, uniqueExports, exportedNames);
                         }
                     }
@@ -153,13 +153,13 @@ namespace ts {
                         if (hasSyntacticModifier(node, ModifierFlags.Default)) {
                             // export default function() { }
                             if (!hasExportDefault) {
-                                multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), context.factory.getDeclarationName(<FunctionDeclaration>node));
+                                multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), context.factory.getDeclarationName(node as FunctionDeclaration));
                                 hasExportDefault = true;
                             }
                         }
                         else {
                             // export function x() { }
-                            const name = (<FunctionDeclaration>node).name!;
+                            const name = (node as FunctionDeclaration).name!;
                             if (!uniqueExports.get(idText(name))) {
                                 multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), name);
                                 uniqueExports.set(idText(name), true);
@@ -174,13 +174,13 @@ namespace ts {
                         if (hasSyntacticModifier(node, ModifierFlags.Default)) {
                             // export default class { }
                             if (!hasExportDefault) {
-                                multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), context.factory.getDeclarationName(<ClassDeclaration>node));
+                                multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), context.factory.getDeclarationName(node as ClassDeclaration));
                                 hasExportDefault = true;
                             }
                         }
                         else {
                             // export class x { }
-                            const name = (<ClassDeclaration>node).name;
+                            const name = (node as ClassDeclaration).name;
                             if (name && !uniqueExports.get(idText(name))) {
                                 multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), name);
                                 uniqueExports.set(idText(name), true);
@@ -299,35 +299,32 @@ namespace ts {
     }
 
     /**
-     * Adds super call and preceding prologue directives into the list of statements.
-     *
-     * @param ctor The constructor node.
-     * @param result The list of statements.
-     * @param visitor The visitor to apply to each node added to the result array.
-     * @returns index of the statement that follows super call
+     * @returns Contained super() call from descending into the statement ignoring parentheses, if that call exists.
      */
-    export function addPrologueDirectivesAndInitialSuperCall(factory: NodeFactory, ctor: ConstructorDeclaration, result: Statement[], visitor: Visitor): number {
-        if (ctor.body) {
-            const statements = ctor.body.statements;
-            // add prologue directives to the list (if any)
-            const index = factory.copyPrologue(statements, result, /*ensureUseStrict*/ false, visitor);
-            if (index === statements.length) {
-                // list contains nothing but prologue directives (or empty) - exit
-                return index;
-            }
-
-            const superIndex = findIndex(statements, s => isExpressionStatement(s) && isSuperCall(s.expression), index);
-            if (superIndex > -1) {
-                for (let i = index; i <= superIndex; i++) {
-                    result.push(visitNode(statements[i], visitor, isStatement));
-                }
-                return superIndex + 1;
-            }
-
-            return index;
+    export function getSuperCallFromStatement(statement: Statement) {
+        if (!isExpressionStatement(statement)) {
+            return undefined;
         }
 
-        return 0;
+        const expression = skipParentheses(statement.expression);
+        return isSuperCall(expression)
+            ? expression
+            : undefined;
+    }
+
+    /**
+     * @returns The index (after prologue statements) of a super call, or -1 if not found.
+     */
+    export function findSuperStatementIndex(statements: NodeArray<Statement>, indexAfterLastPrologueStatement: number) {
+        for (let i = indexAfterLastPrologueStatement; i < statements.length; i += 1) {
+            const statement = statements[i];
+
+            if (getSuperCallFromStatement(statement)) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     /**
@@ -342,6 +339,16 @@ namespace ts {
         return filter(node.members, m => isInitializedOrStaticProperty(m, requireInitializer, isStatic)) as PropertyDeclaration[];
     }
 
+    function isStaticPropertyDeclarationOrClassStaticBlockDeclaration(element: ClassElement): element is PropertyDeclaration | ClassStaticBlockDeclaration {
+        return isStaticPropertyDeclaration(element) || isClassStaticBlockDeclaration(element);
+    }
+
+    export function getStaticPropertiesAndClassStaticBlock(node: ClassExpression | ClassDeclaration): readonly (PropertyDeclaration | ClassStaticBlockDeclaration)[];
+    export function getStaticPropertiesAndClassStaticBlock(node: ClassExpression | ClassDeclaration): readonly (PropertyDeclaration | ClassStaticBlockDeclaration)[];
+    export function getStaticPropertiesAndClassStaticBlock(node: ClassExpression | ClassDeclaration): readonly (PropertyDeclaration | ClassStaticBlockDeclaration)[] {
+        return filter(node.members, isStaticPropertyDeclarationOrClassStaticBlockDeclaration);
+    }
+
     /**
      * Is a class element either a static or an instance property declaration with an initializer?
      *
@@ -354,6 +361,10 @@ namespace ts {
             && hasStaticModifier(member) === isStatic;
     }
 
+    function isStaticPropertyDeclaration(member: ClassElement) {
+        return isPropertyDeclaration(member) && hasStaticModifier(member);
+    }
+
     /**
      * Gets a value indicating whether a class element is either a static or an instance property declaration with an initializer.
      *
@@ -362,7 +373,7 @@ namespace ts {
      */
     export function isInitializedProperty(member: ClassElement): member is PropertyDeclaration & { initializer: Expression; } {
         return member.kind === SyntaxKind.PropertyDeclaration
-            && (<PropertyDeclaration>member).initializer !== undefined;
+            && (member as PropertyDeclaration).initializer !== undefined;
     }
 
     /**
@@ -371,6 +382,142 @@ namespace ts {
      * @param member The class element node.
      */
     export function isNonStaticMethodOrAccessorWithPrivateName(member: ClassElement): member is PrivateIdentifierMethodDeclaration | PrivateIdentifierAccessorDeclaration {
-        return !hasStaticModifier(member) && isMethodOrAccessor(member) && isPrivateIdentifier(member.name);
+        return !isStatic(member) && isMethodOrAccessor(member) && isPrivateIdentifier(member.name);
     }
+
+    /**
+     * Gets an array of arrays of decorators for the parameters of a function-like node.
+     * The offset into the result array should correspond to the offset of the parameter.
+     *
+     * @param node The function-like node.
+     */
+    function getDecoratorsOfParameters(node: FunctionLikeDeclaration | undefined) {
+        let decorators: (readonly Decorator[] | undefined)[] | undefined;
+        if (node) {
+            const parameters = node.parameters;
+            const firstParameterIsThis = parameters.length > 0 && parameterIsThisKeyword(parameters[0]);
+            const firstParameterOffset = firstParameterIsThis ? 1 : 0;
+            const numParameters = firstParameterIsThis ? parameters.length - 1 : parameters.length;
+            for (let i = 0; i < numParameters; i++) {
+                const parameter = parameters[i + firstParameterOffset];
+                if (decorators || parameter.decorators) {
+                    if (!decorators) {
+                        decorators = new Array(numParameters);
+                    }
+
+                    decorators[i] = parameter.decorators;
+                }
+            }
+        }
+
+        return decorators;
+    }
+
+    /**
+     * Gets an AllDecorators object containing the decorators for the class and the decorators for the
+     * parameters of the constructor of the class.
+     *
+     * @param node The class node.
+     */
+    export function getAllDecoratorsOfClass(node: ClassLikeDeclaration): AllDecorators | undefined {
+        const decorators = node.decorators;
+        const parameters = getDecoratorsOfParameters(getFirstConstructorWithBody(node));
+        if (!decorators && !parameters) {
+            return undefined;
+        }
+
+        return {
+            decorators,
+            parameters
+        };
+    }
+
+    /**
+     * Gets an AllDecorators object containing the decorators for the member and its parameters.
+     *
+     * @param parent The class node that contains the member.
+     * @param member The class member.
+     */
+    export function getAllDecoratorsOfClassElement(member: ClassElement, parent: ClassLikeDeclaration): AllDecorators | undefined {
+        switch (member.kind) {
+            case SyntaxKind.GetAccessor:
+            case SyntaxKind.SetAccessor:
+                return getAllDecoratorsOfAccessors(member as AccessorDeclaration, parent);
+
+            case SyntaxKind.MethodDeclaration:
+                return getAllDecoratorsOfMethod(member as MethodDeclaration);
+
+            case SyntaxKind.PropertyDeclaration:
+                return getAllDecoratorsOfProperty(member as PropertyDeclaration);
+
+            default:
+                return undefined;
+        }
+    }
+
+    /**
+     * Gets an AllDecorators object containing the decorators for the accessor and its parameters.
+     *
+     * @param parent The class node that contains the accessor.
+     * @param accessor The class accessor member.
+     */
+    function getAllDecoratorsOfAccessors(accessor: AccessorDeclaration, parent: ClassExpression | ClassDeclaration): AllDecorators | undefined {
+        if (!accessor.body) {
+            return undefined;
+        }
+
+        const { firstAccessor, secondAccessor, getAccessor, setAccessor } = getAllAccessorDeclarations(parent.members, accessor);
+        const firstAccessorWithDecorators = firstAccessor.decorators ? firstAccessor : secondAccessor && secondAccessor.decorators ? secondAccessor : undefined;
+        if (!firstAccessorWithDecorators || accessor !== firstAccessorWithDecorators) {
+            return undefined;
+        }
+
+        const decorators = firstAccessorWithDecorators.decorators;
+        const parameters = getDecoratorsOfParameters(setAccessor);
+        if (!decorators && !parameters) {
+            return undefined;
+        }
+
+        return {
+            decorators,
+            parameters,
+            getDecorators: getAccessor?.decorators,
+            setDecorators: setAccessor?.decorators
+        };
+    }
+
+    /**
+     * Gets an AllDecorators object containing the decorators for the method and its parameters.
+     *
+     * @param method The class method member.
+     */
+    function getAllDecoratorsOfMethod(method: MethodDeclaration): AllDecorators | undefined {
+        if (!method.body) {
+            return undefined;
+        }
+
+        const decorators = method.decorators;
+        const parameters = getDecoratorsOfParameters(method);
+        if (!decorators && !parameters) {
+            return undefined;
+        }
+
+        return { decorators, parameters };
+    }
+
+    /**
+     * Gets an AllDecorators object containing the decorators for the property.
+     *
+     * @param property The class property member.
+     */
+    function getAllDecoratorsOfProperty(property: PropertyDeclaration): AllDecorators | undefined {
+        const decorators = property.decorators;
+        if (!decorators) {
+            return undefined;
+
+        }
+
+        return { decorators };
+    }
+
 }

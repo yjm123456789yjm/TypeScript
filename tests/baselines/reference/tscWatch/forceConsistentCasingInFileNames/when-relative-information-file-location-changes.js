@@ -34,7 +34,7 @@ Output::
   The file is in the program because:
     Imported via "./ModuleC" from file '/user/username/projects/myproject/moduleA.ts'
     Imported via "./moduleC" from file '/user/username/projects/myproject/moduleB.ts'
-    Matched by include pattern '**/*' in 'tsconfig.json'
+    Matched by default include pattern '**/*'
 
 [7m1[0m import a = require("./ModuleC")
 [7m [0m [91m                   ~~~~~~~~~~~[0m
@@ -48,7 +48,7 @@ Output::
   The file is in the program because:
     Imported via "./ModuleC" from file '/user/username/projects/myproject/moduleA.ts'
     Imported via "./moduleC" from file '/user/username/projects/myproject/moduleB.ts'
-    Matched by include pattern '**/*' in 'tsconfig.json'
+    Matched by default include pattern '**/*'
 
 [7m1[0m import a = require("./moduleC")
 [7m [0m [91m                   ~~~~~~~~~~~[0m
@@ -59,15 +59,15 @@ Output::
     File is included via import here.
 
 ../../../../a/lib/lib.d.ts
-  Default library
+  Default library for target 'es3'
 ModuleC.ts
   Imported via "./ModuleC" from file 'moduleA.ts'
   Imported via "./moduleC" from file 'moduleB.ts'
-  Matched by include pattern '**/*' in 'tsconfig.json'
+  Matched by default include pattern '**/*'
 moduleA.ts
-  Matched by include pattern '**/*' in 'tsconfig.json'
+  Matched by default include pattern '**/*'
 moduleB.ts
-  Matched by include pattern '**/*' in 'tsconfig.json'
+  Matched by default include pattern '**/*'
 [[90m12:00:32 AM[0m] Found 2 errors. Watching for file changes.
 
 
@@ -86,6 +86,12 @@ Semantic diagnostics in builder refreshed for::
 /user/username/projects/myproject/ModuleC.ts
 /user/username/projects/myproject/moduleA.ts
 /user/username/projects/myproject/moduleB.ts
+
+Shape signatures in builder refreshed for::
+/a/lib/lib.d.ts (used version)
+/user/username/projects/myproject/modulec.ts (used version)
+/user/username/projects/myproject/modulea.ts (used version)
+/user/username/projects/myproject/moduleb.ts (used version)
 
 WatchedFiles::
 /user/username/projects/myproject/tsconfig.json:
@@ -143,7 +149,7 @@ Output::
   The file is in the program because:
     Imported via "./ModuleC" from file '/user/username/projects/myproject/moduleA.ts'
     Imported via "./moduleC" from file '/user/username/projects/myproject/moduleB.ts'
-    Matched by include pattern '**/*' in 'tsconfig.json'
+    Matched by default include pattern '**/*'
 
 [7m2[0m                     import a = require("./ModuleC")
 [7m [0m [91m                                       ~~~~~~~~~~~[0m
@@ -157,7 +163,7 @@ Output::
   The file is in the program because:
     Imported via "./ModuleC" from file '/user/username/projects/myproject/moduleA.ts'
     Imported via "./moduleC" from file '/user/username/projects/myproject/moduleB.ts'
-    Matched by include pattern '**/*' in 'tsconfig.json'
+    Matched by default include pattern '**/*'
 
 [7m1[0m import a = require("./moduleC")
 [7m [0m [91m                   ~~~~~~~~~~~[0m
@@ -168,15 +174,15 @@ Output::
     File is included via import here.
 
 ../../../../a/lib/lib.d.ts
-  Default library
+  Default library for target 'es3'
 ModuleC.ts
   Imported via "./ModuleC" from file 'moduleA.ts'
   Imported via "./moduleC" from file 'moduleB.ts'
-  Matched by include pattern '**/*' in 'tsconfig.json'
+  Matched by default include pattern '**/*'
 moduleA.ts
-  Matched by include pattern '**/*' in 'tsconfig.json'
+  Matched by default include pattern '**/*'
 moduleB.ts
-  Matched by include pattern '**/*' in 'tsconfig.json'
+  Matched by default include pattern '**/*'
 [[90m12:00:39 AM[0m] Found 2 errors. Watching for file changes.
 
 
@@ -192,6 +198,9 @@ Program files::
 
 Semantic diagnostics in builder refreshed for::
 /user/username/projects/myproject/moduleA.ts
+
+Shape signatures in builder refreshed for::
+/user/username/projects/myproject/modulea.ts (computed .d.ts)
 
 WatchedFiles::
 /user/username/projects/myproject/tsconfig.json:

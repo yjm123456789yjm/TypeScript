@@ -36,8 +36,8 @@ namespace ts.projectSystem {
 
             function setCallsTrackingWithSingleArgFn(prop: CalledMapsWithSingleArg) {
                 const calledMap = createMultiMap<true>();
-                const cb = (<any>host)[prop].bind(host);
-                (<any>host)[prop] = (f: string) => {
+                const cb = (host as any)[prop].bind(host);
+                (host as any)[prop] = (f: string) => {
                     calledMap.add(f, /*value*/ true);
                     return cb(f);
                 };
@@ -46,8 +46,8 @@ namespace ts.projectSystem {
 
             function setCallsTrackingWithFiveArgFn<U, V, W, X>(prop: CalledMapsWithFiveArgs) {
                 const calledMap = createMultiMap<[U, V, W, X]>();
-                const cb = (<any>host)[prop].bind(host);
-                (<any>host)[prop] = (f: string, arg1?: U, arg2?: V, arg3?: W, arg4?: X) => {
+                const cb = (host as any)[prop].bind(host);
+                (host as any)[prop] = (f: string, arg1?: U, arg2?: V, arg3?: W, arg4?: X) => {
                     calledMap.add(f, [arg1!, arg2!, arg3!, arg4!]); // TODO: GH#18217
                     return cb(f, arg1, arg2, arg3, arg4);
                 };
@@ -540,15 +540,13 @@ namespace ts.projectSystem {
                 });
                 const appFolder = getDirectoryPath(app.path);
                 const projectFiles = [app, libFile, tsconfigJson];
-                const typeRootDirectories = getTypeRootsFromLocation(getDirectoryPath(tsconfigJson.path));
                 const otherFiles = [packageJson];
                 const host = createServerHost(projectFiles.concat(otherFiles));
-                const projectService = createProjectService(host);
+                const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs() });
                 projectService.setHostConfiguration({ preferences: { includePackageJsonAutoImports: "off" } });
                 const { configFileName } = projectService.openClientFile(app.path);
                 assert.equal(configFileName, tsconfigJson.path as server.NormalizedPath, `should find config`); // TODO: GH#18217
                 const recursiveWatchedDirectories: string[] = [`${appFolder}`, `${appFolder}/node_modules`].concat(getNodeModuleDirectories(getDirectoryPath(appFolder)));
-                verifyProject();
 
                 let npmInstallComplete = false;
 
@@ -635,6 +633,12 @@ namespace ts.projectSystem {
                 npmInstallComplete = true;
                 verifyAfterPartialOrCompleteNpmInstall(2);
 
+                baselineTsserverLogs(
+                    "cachingFileSystemInformation",
+                    `npm install works when ${timeoutDuringPartialInstallation ? "timeout occurs inbetween installation" : "timeout occurs after installation"}`,
+                    projectService
+                );
+
                 function verifyAfterPartialOrCompleteNpmInstall(timeoutQueueLengthWhenRunningTimeouts: number) {
                     filesAndFoldersToAdd.forEach(f => host.ensureFileOrFolder(f));
                     if (npmInstallComplete || timeoutDuringPartialInstallation) {
@@ -650,20 +654,6 @@ namespace ts.projectSystem {
                     else {
                         host.checkTimeoutQueueLength(3);
                     }
-                    verifyProject();
-                }
-
-                function verifyProject() {
-                    checkNumberOfConfiguredProjects(projectService, 1);
-
-                    const project = projectService.configuredProjects.get(tsconfigJson.path)!;
-                    const projectFilePaths = map(projectFiles, f => f.path);
-                    checkProjectActualFiles(project, projectFilePaths);
-
-                    const filesWatched = filter(projectFilePaths, p => p !== app.path && p.indexOf("/a/b/node_modules") === -1);
-                    checkWatchedFiles(host, filesWatched);
-                    checkWatchedDirectories(host, typeRootDirectories.concat(recursiveWatchedDirectories), /*recursive*/ true);
-                    checkWatchedDirectories(host, [], /*recursive*/ false);
                 }
             }
 

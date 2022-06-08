@@ -20,6 +20,16 @@ namespace ts {
          */
         /*@internal*/
         disableUseFileVersionAsSignature?: boolean;
+        /**
+         * Store the list of files that update signature during the emit
+         */
+        /*@internal*/
+        storeFilesChangingSignatureDuringEmit?: boolean;
+        /**
+         * Gets the current time
+         */
+        /*@internal*/
+        now?(): Date;
     }
 
     /**
@@ -29,9 +39,9 @@ namespace ts {
         /*@internal*/
         getState(): ReusableBuilderProgramState;
         /*@internal*/
-        backupState(): void;
+        saveEmitState(): SavedBuildProgramEmitState;
         /*@internal*/
-        restoreState(): void;
+        restoreEmitState(saved: SavedBuildProgramEmitState): void;
         /**
          * Returns current program
          */
@@ -164,6 +174,6 @@ namespace ts {
     export function createAbstractBuilder(rootNames: readonly string[] | undefined, options: CompilerOptions | undefined, host?: CompilerHost, oldProgram?: BuilderProgram, configFileParsingDiagnostics?: readonly Diagnostic[], projectReferences?: readonly ProjectReference[]): BuilderProgram;
     export function createAbstractBuilder(newProgramOrRootNames: Program | readonly string[] | undefined, hostOrOptions: BuilderProgramHost | CompilerOptions | undefined, oldProgramOrHost?: CompilerHost | BuilderProgram, configFileParsingDiagnosticsOrOldProgram?: readonly Diagnostic[] | BuilderProgram, configFileParsingDiagnostics?: readonly Diagnostic[], projectReferences?: readonly ProjectReference[]): BuilderProgram {
         const { newProgram, configFileParsingDiagnostics: newConfigFileParsingDiagnostics } = getBuilderCreationParameters(newProgramOrRootNames, hostOrOptions, oldProgramOrHost, configFileParsingDiagnosticsOrOldProgram, configFileParsingDiagnostics, projectReferences);
-        return createRedirectedBuilderProgram({ program: newProgram, compilerOptions: newProgram.getCompilerOptions() }, newConfigFileParsingDiagnostics);
+        return createRedirectedBuilderProgram(() => ({ program: newProgram, compilerOptions: newProgram.getCompilerOptions() }), newConfigFileParsingDiagnostics);
     }
 }

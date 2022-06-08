@@ -637,11 +637,11 @@ namespace ts.projectSystem {
                 const host = createServerHost(files, { currentDirectory: tscWatch.projectRoot });
                 const service = createProjectService(host);
                 setupConfigureHost(service, configureHost);
-                service.openExternalProject(<protocol.ExternalProject>{
+                service.openExternalProject({
                     projectFileName: `${tscWatch.projectRoot}/project.csproj`,
                     rootFiles: toExternalFiles([main.path, bar.path, foo.path]),
                     options: { excludeDirectories: ["node_modules"] }
-                });
+                } as protocol.ExternalProject);
                 service.openClientFile(main.path);
                 return host;
             }
@@ -675,11 +675,11 @@ namespace ts.projectSystem {
                 const files = [libFile, main, bar, foo];
                 const host = createServerHost(files, { currentDirectory: tscWatch.projectRoot });
                 const service = createProjectService(host);
-                service.openExternalProject(<protocol.ExternalProject>{
+                service.openExternalProject({
                     projectFileName: `${tscWatch.projectRoot}/project.csproj`,
                     rootFiles: toExternalFiles([main.path, bar.path, foo.path]),
                     options: { excludeDirectories: ["**/../*"] }
-                });
+                } as protocol.ExternalProject);
                 service.openClientFile(main.path);
                 const project = service.externalProjects[0];
                 assert.deepEqual(project.getAllProjectErrors(), [
@@ -817,5 +817,36 @@ namespace ts.projectSystem {
         it("project with unicode file names", () => {
             verifyFileNames("/User/userName/Projects/İ", "/user/username/projects/İ");
         });
+    });
+
+    describe("unittests:: tsserver:: watchEnvironment:: watchFile is single watcher per file", () => {
+        function verifyWatchFile(scenario: string, environmentVariables?: ESMap<string, string>) {
+            it(scenario, () => {
+                const config: File = {
+                    path: `${tscWatch.projectRoot}/tsconfig.json`,
+                    content: JSON.stringify({
+                        compilerOptions: {
+                            composite: true,
+                            resolveJsonModule: true,
+                        },
+                    })
+                };
+                const index: File = {
+                    path: `${tscWatch.projectRoot}/index.ts`,
+                    content: `import * as tsconfig from "./tsconfig.json";`
+                };
+                const host = createServerHost([config, index, libFile], { environmentVariables });
+                const session = createSession(host, { logger: createLoggerWithInMemoryLogs() });
+                openFilesForSession([index], session);
+                host.serializeWatches().forEach(b => session.logger.info(b));
+                baselineTsserverLogs("watchEnvironment", scenario, session);
+            });
+        }
+
+        verifyWatchFile("when watchFile can create multiple watchers per file");
+        verifyWatchFile(
+            "when watchFile is single watcher per file",
+            arrayToMap(["TSC_WATCHFILE"], identity, () => TestFSWithWatch.Tsc_WatchFile.SingleFileWatcherPerName)
+        );
     });
 }

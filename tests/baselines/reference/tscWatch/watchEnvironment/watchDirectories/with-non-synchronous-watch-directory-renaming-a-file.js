@@ -44,6 +44,11 @@ Semantic diagnostics in builder refreshed for::
 /user/username/projects/myproject/src/file2.ts
 /user/username/projects/myproject/src/file1.ts
 
+Shape signatures in builder refreshed for::
+/a/lib/lib.d.ts (used version)
+/user/username/projects/myproject/src/file2.ts (used version)
+/user/username/projects/myproject/src/file1.ts (used version)
+
 WatchedFiles::
 /user/username/projects/myproject/tsconfig.json:
   {"fileName":"/user/username/projects/myproject/tsconfig.json","pollingInterval":250}
@@ -126,7 +131,7 @@ Output::
 
 [91merror[0m[90m TS6053: [0mFile '/user/username/projects/myproject/src/file2.ts' not found.
   The file is in the program because:
-    Matched by include pattern '**/*' in '/user/username/projects/myproject/tsconfig.json'
+    Matched by default include pattern '**/*'
 
 [[90m12:00:41 AM[0m] Found 1 error. Watching for file changes.
 
@@ -141,6 +146,9 @@ Program files::
 
 Semantic diagnostics in builder refreshed for::
 /user/username/projects/myproject/src/file1.ts
+
+Shape signatures in builder refreshed for::
+/user/username/projects/myproject/src/file1.ts (computed .d.ts)
 
 WatchedFiles::
 /user/username/projects/myproject/tsconfig.json:
@@ -196,6 +204,9 @@ Program files::
 Semantic diagnostics in builder refreshed for::
 /user/username/projects/myproject/src/file1.ts
 /user/username/projects/myproject/src/renamed.ts
+
+Shape signatures in builder refreshed for::
+/user/username/projects/myproject/src/renamed.ts (computed .d.ts)
 
 WatchedFiles::
 /user/username/projects/myproject/tsconfig.json:

@@ -50,6 +50,11 @@ Semantic diagnostics in builder refreshed for::
 /a/b/commonFile1.ts
 /a/b/commonFile2.ts
 
+Shape signatures in builder refreshed for::
+/a/lib/lib.d.ts (used version)
+/a/b/commonfile1.ts (used version)
+/a/b/commonfile2.ts (used version)
+
 WatchedFiles::
 /a/b/tsconfig.json:
   {"fileName":"/a/b/tsconfig.json","pollingInterval":250}
@@ -88,7 +93,7 @@ Output::
 >> Screen clear
 [[90m12:00:29 AM[0m] File change detected. Starting incremental compilation...
 
-[[90m12:00:30 AM[0m] Found 0 errors. Watching for file changes.
+[[90m12:00:36 AM[0m] Found 0 errors. Watching for file changes.
 
 
 
@@ -105,6 +110,8 @@ Semantic diagnostics in builder refreshed for::
 /a/b/commonFile1.ts
 /a/b/commonFile2.ts
 
+No shapes updated in the builder::
+
 WatchedFiles::
 /a/b/tsconfig.json:
   {"fileName":"/a/b/tsconfig.json","pollingInterval":250}
@@ -127,6 +134,16 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
+//// [/a/b/commonFile1.js]
+"use strict";
+var x = 1;
+
+
+//// [/a/b/commonFile2.js]
+"use strict";
+var y = 1;
+
+
 
 Change:: Change first extended config
 
@@ -137,9 +154,9 @@ Input::
 
 Output::
 >> Screen clear
-[[90m12:00:33 AM[0m] File change detected. Starting incremental compilation...
+[[90m12:00:39 AM[0m] File change detected. Starting incremental compilation...
 
-[[90m12:00:34 AM[0m] Found 0 errors. Watching for file changes.
+[[90m12:00:46 AM[0m] Found 0 errors. Watching for file changes.
 
 
 
@@ -156,6 +173,8 @@ Semantic diagnostics in builder refreshed for::
 /a/b/commonFile1.ts
 /a/b/commonFile2.ts
 
+No shapes updated in the builder::
+
 WatchedFiles::
 /a/b/tsconfig.json:
   {"fileName":"/a/b/tsconfig.json","pollingInterval":250}
@@ -178,6 +197,14 @@ FsWatchesRecursive::
 
 exitCode:: ExitStatus.undefined
 
+//// [/a/b/commonFile1.js]
+var x = 1;
+
+
+//// [/a/b/commonFile2.js]
+var y = 1;
+
+
 
 Change:: Change second extended config
 
@@ -188,9 +215,9 @@ Input::
 
 Output::
 >> Screen clear
-[[90m12:00:37 AM[0m] File change detected. Starting incremental compilation...
+[[90m12:00:49 AM[0m] File change detected. Starting incremental compilation...
 
-[[90m12:00:38 AM[0m] Found 0 errors. Watching for file changes.
+[[90m12:00:50 AM[0m] Found 0 errors. Watching for file changes.
 
 
 
@@ -206,6 +233,8 @@ Semantic diagnostics in builder refreshed for::
 /a/lib/lib.d.ts
 /a/b/commonFile1.ts
 /a/b/commonFile2.ts
+
+No shapes updated in the builder::
 
 WatchedFiles::
 /a/b/tsconfig.json:
@@ -239,9 +268,9 @@ Input::
 
 Output::
 >> Screen clear
-[[90m12:00:41 AM[0m] File change detected. Starting incremental compilation...
+[[90m12:00:54 AM[0m] File change detected. Starting incremental compilation...
 
-[[90m12:00:42 AM[0m] Found 0 errors. Watching for file changes.
+[[90m12:00:55 AM[0m] Found 0 errors. Watching for file changes.
 
 
 
@@ -257,6 +286,8 @@ Semantic diagnostics in builder refreshed for::
 /a/lib/lib.d.ts
 /a/b/commonFile1.ts
 /a/b/commonFile2.ts
+
+No shapes updated in the builder::
 
 WatchedFiles::
 /a/b/tsconfig.json:

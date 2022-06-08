@@ -89,7 +89,7 @@ namespace ts.server {
     }
 
     export function initializeNodeSystem(): StartInput {
-        const sys = <ServerHost>Debug.checkDefined(ts.sys);
+        const sys = Debug.checkDefined(ts.sys) as ServerHost;
         const childProcess: {
             execFileSync(file: string, args: string[], options: { stdio: "ignore", env: MapLike<string> }): string | Buffer;
         } = require("child_process");
@@ -233,7 +233,7 @@ namespace ts.server {
 
         // Override sys.write because fs.writeSync is not reliable on Node 4
         sys.write = (s: string) => writeMessage(sys.bufferFrom!(s, "utf8") as globalThis.Buffer);
-         // REVIEW: for now this implementation uses polling.
+        // REVIEW: for now this implementation uses polling.
         // The advantage of polling is that it works reliably
         // on all os and with network mounted files.
         // For 90 referenced files, the average time to detect
@@ -256,7 +256,7 @@ namespace ts.server {
         /* eslint-enable no-restricted-globals */
 
         if (typeof global !== "undefined" && global.gc) {
-            sys.gc = () => global.gc();
+            sys.gc = () => global.gc?.();
         }
 
         sys.require = (initialDir: string, moduleName: string): RequireResult => {
@@ -408,24 +408,6 @@ namespace ts.server {
         const stream: {
             Readable: { from(str: string): NodeJS.ReadStream; };
         } = require("stream");
-
-        function getInputReadStream(inputFile: string | undefined) {
-            if (!inputFile) return undefined;
-            const lines = fs.readFileSync(stripQuotes(inputFile), "utf8")?.split(/\r?\n/) || [];
-            const result = [];
-            for (const line of lines) {
-                if (!line.match(/^\s*\{\"seq\":/)) continue;
-                try {
-                    const json = JSON.parse(line);
-                    if (json && json.type === "request") {
-                        result.push(line);
-                    }
-                }
-                catch (e) {
-                }
-            }
-            return stream.Readable.from(result.join("\n"));
-        }
 
         interface QueuedOperation {
             operationId: string;
@@ -779,18 +761,40 @@ namespace ts.server {
             }
         }
 
-        const inputStream = getInputReadStream(findArgument("--inputFile"));
-        const rl = readline.createInterface({
-            input: inputStream || process.stdin,
-            output: process.stdout,
-            terminal: false,
-        });
+        class IpcIOSession extends IOSession {
+
+            protected writeMessage(msg: protocol.Message): void {
+                const verboseLogging = logger.hasLevel(LogLevel.verbose);
+                if (verboseLogging) {
+                    const json = JSON.stringify(msg);
+                    logger.info(`${msg.type}:${indent(json)}`);
+                }
+
+                process.send!(msg);
+            }
+
+            protected parseMessage(message: any): protocol.Request {
+                return message as protocol.Request;
+            }
+
+            protected toStringMessage(message: any) {
+                return JSON.stringify(message, undefined, 2);
+            }
+
+            public listen() {
+                process.on("message", (e: any) => {
+                    this.onMessage(e);
+                });
+            }
+        }
+
         const eventPort: number | undefined = parseEventPort(findArgument("--eventPort"));
         const typingSafeListLocation = findArgument(Arguments.TypingSafeListLocation)!; // TODO: GH#18217
         const typesMapLocation = findArgument(Arguments.TypesMapLocation) || combinePaths(getDirectoryPath(sys.getExecutingFilePath()), "typesMap.json");
         const npmLocation = findArgument(Arguments.NpmLocation);
         const validateDefaultNpmLocation = hasArgument(Arguments.ValidateDefaultNpmLocation);
         const disableAutomaticTypingAcquisition = hasArgument("--disableAutomaticTypingAcquisition");
+        const useNodeIpc = hasArgument("--useNodeIpc");
         const telemetryEnabled = hasArgument(Arguments.EnableTelemetry);
         const commandLineTraceDir = findArgument("--traceDirectory");
         const traceDir = commandLineTraceDir
@@ -799,8 +803,14 @@ namespace ts.server {
         if (traceDir) {
             startTracing("server", traceDir);
         }
+        const inputStream = getInputReadStream(findArgument("--inputFile"));
+        const rl = readline.createInterface({
+            input: inputStream  || process.stdin,
+            output: process.stdout,
+            terminal: false,
+        });
 
-        const ioSession = new IOSession();
+        const ioSession = useNodeIpc ? new IpcIOSession() : new IOSession();
         process.on("uncaughtException", err => {
             ioSession.logError(err, "unknown");
         });
@@ -808,6 +818,31 @@ namespace ts.server {
         (process as any).noAsar = true;
         // Start listening
         ioSession.listen();
+
+        function getInputReadStream(inputFile: string | undefined) {
+            if (!inputFile) return undefined;
+            const lines = fs.readFileSync(stripQuotes(inputFile), "utf8")?.split(/\r?\n/) || [];
+            const result = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (!endsWith(line, "] request:")) continue;
+                let texts: string[] = [];
+                for (i++; i < lines.length; i++) {
+                    texts.push(lines[i]);
+                    if (lines[i] === "    }") break;
+                }
+                const text = texts.join("");
+                try {
+                    const json = JSON.parse(text);
+                    if (json && json.type === "request") {
+                        result.push(JSON.stringify(json));
+                    }
+                }
+                catch (e) {
+                }
+            }
+            return stream.Readable.from(result.join("\n"));
+        }
 
         function getGlobalTypingsCacheLocation() {
             switch (process.platform) {

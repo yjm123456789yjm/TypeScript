@@ -3,11 +3,15 @@ namespace ts {
     function getModuleTransformer(moduleKind: ModuleKind): TransformerFactory<SourceFile | Bundle> {
         switch (moduleKind) {
             case ModuleKind.ESNext:
+            case ModuleKind.ES2022:
             case ModuleKind.ES2020:
             case ModuleKind.ES2015:
                 return transformECMAScriptModule;
             case ModuleKind.System:
                 return transformSystemModule;
+            case ModuleKind.Node16:
+            case ModuleKind.NodeNext:
+                return transformNodeModule;
             default:
                 return transformModule;
         }
@@ -44,6 +48,7 @@ namespace ts {
         addRange(transformers, customTransformers && map(customTransformers.before, wrapScriptTransformerFactory));
 
         transformers.push(transformTypeScript);
+        transformers.push(transformLegacyDecorators);
         transformers.push(transformClassFields);
 
         if (getJSXTransformEnabled(compilerOptions)) {
@@ -562,31 +567,31 @@ namespace ts {
     }
 
     export const nullTransformationContext: TransformationContext = {
-        get factory() { return factory; },
-        enableEmitNotification: noop,
-        enableSubstitution: noop,
-        endLexicalEnvironment: returnUndefined,
+        factory: factory, // eslint-disable-line object-shorthand
         getCompilerOptions: () => ({}),
-        getEmitHost: notImplemented,
         getEmitResolver: notImplemented,
+        getEmitHost: notImplemented,
         getEmitHelperFactory: notImplemented,
+        startLexicalEnvironment: noop,
+        resumeLexicalEnvironment: noop,
+        suspendLexicalEnvironment: noop,
+        endLexicalEnvironment: returnUndefined,
         setLexicalEnvironmentFlags: noop,
         getLexicalEnvironmentFlags: () => 0,
-        hoistFunctionDeclaration: noop,
         hoistVariableDeclaration: noop,
+        hoistFunctionDeclaration: noop,
         addInitializationStatement: noop,
-        isEmitNotificationEnabled: notImplemented,
-        isSubstitutionEnabled: notImplemented,
-        onEmitNode: noop,
-        onSubstituteNode: notImplemented,
-        readEmitHelpers: notImplemented,
-        requestEmitHelper: noop,
-        resumeLexicalEnvironment: noop,
-        startLexicalEnvironment: noop,
-        suspendLexicalEnvironment: noop,
-        addDiagnostic: noop,
         startBlockScope: noop,
         endBlockScope: returnUndefined,
-        addBlockScopedVariable: noop
+        addBlockScopedVariable: noop,
+        requestEmitHelper: noop,
+        readEmitHelpers: notImplemented,
+        enableSubstitution: noop,
+        enableEmitNotification: noop,
+        isSubstitutionEnabled: notImplemented,
+        isEmitNotificationEnabled: notImplemented,
+        onSubstituteNode: noEmitSubstitution,
+        onEmitNode: noEmitNotification,
+        addDiagnostic: noop,
     };
 }
