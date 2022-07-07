@@ -554,6 +554,7 @@ class someClass2 { }`),
                 }
             });
 
+            // TODO: (shkamat): Why are resolutions not shared for tests.tsconfig
             verifyTscWithEdits({
                 scenario: "sample1",
                 subScenario: "cacheResolutions",
