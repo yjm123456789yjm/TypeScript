@@ -182,6 +182,19 @@ namespace ts {
         let startsWithPathChecks: Set<Path> | undefined;
         let isInDirectoryChecks: Set<Path> | undefined;
 
+
+        // TODO: (shakamt) to make it work for watch scenario
+        // Per dir caches instead of per file: so we can populate the cache for cache resolutions as well and watching doesnt go for the toss:
+        // Eg. the files whose resolution is used from buildInfo wont come here and wont be watched?
+        // Handle list of files with changed resolutions? 
+        // And files not in program if program structure is not used completely?
+        // Do we need to watch failed lookups.. can we not store it in buildinfo
+        // Hash/timestamp check for package json affected files?
+        // Populating package json in module resolution cache?
+        
+        // Populating module and type ref cache with buildInfo information?
+        
+        
         const getCurrentDirectory = memoize(() => resolutionHost.getCurrentDirectory!()); // TODO: GH#18217
         const cachedDirectoryStructureHost = resolutionHost.getCachedDirectoryStructureHost();
 
